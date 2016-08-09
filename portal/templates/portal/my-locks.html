@@ -1,0 +1,46 @@
+{% extends 'portal/base.html' %}
+{% block title %} My Locks {% endblock %}
+{% block body %}
+    {% if object_list %}
+        <table style="width:40%" align="center" border="0">
+            {% for iterator in object_list %}
+                <tr width="80%">
+                    <th>{{iterator.nickname}}</th>
+                    <!-- Share Button -->
+                    <th>
+                        <div class="col-sm-offset-2 col-sn-30">
+                            <form action="{% url 'portal:share' iterator.nickname %}" method="get" >
+                                {% csrf_token %}
+                                <input type="hidden">
+                                <button type="submit" class="btn btn-primary btn-md"> Share </button>
+                            </form>
+                        </div>
+                    </th>
+                    <!-- Open Close Door -->
+                    <th>
+                        {% if iterator.is_opened %}
+                            <div class="col-sm-offset-2 col-sn-30">
+                                <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get" >
+                                    {% csrf_token %}
+                                    <input type="hidden">
+                                    <button type="submit" class="btn btn-primary btn-md"> Open! </button>
+                                </form>
+                            </div>
+                        {% else %}
+                            <div class="col-sm-offset-2 col-sn-30">
+                                <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get" >
+                                    {% csrf_token %}
+                                    <input type="hidden">
+                                    <button type="submit" class="btn btn-danger btn-md"> Close! </button>
+                                </form>
+                            </div>
+                        {% endif %}
+                        &nbsp;
+                    </th>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h1> No Lockies ! </h1>
+    {% endif %}
+{% endblock %}

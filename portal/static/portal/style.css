@@ -1,0 +1,142 @@
+.navbar{
+    border-radius: 0;
+}
+
+.navbar-brand{
+    font-family: 'Righteous', cursive;
+}
+
+.nav li  {
+    font-family: 'Righteous', cursive;
+    font-size: 1.8em !important
+    color: white !important;
+}
+
+.navbar-default {
+  background-color: #4799e8;
+  border-color: #338fe6;
+}
+.navbar-default .navbar-brand {
+  color: #ffffff;
+}
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus {
+  color: #1976cc;
+}
+.navbar-default .navbar-text {
+  color: #ffffff;
+}
+.navbar-default .navbar-nav > li > a {
+  color: #ffffff;
+}
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+  color: #1976cc;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu {
+  background-color: #4799e8;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a {
+  color: #ffffff;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:hover,
+.navbar-default .navbar-nav > li > .dropdown-menu > li > a:focus {
+  color: #1976cc;
+  background-color: #338fe6;
+}
+.navbar-default .navbar-nav > li > .dropdown-menu > li > .divider {
+  background-color: #338fe6;
+}
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+.navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+  color: #1976cc;
+  background-color: #338fe6;
+}
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+  color: #1976cc;
+  background-color: #338fe6;
+}
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+  color: #1976cc;
+  background-color: #338fe6;
+}
+.navbar-default .navbar-toggle {
+  border-color: #338fe6;
+}
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: #338fe6;
+}
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: #ffffff;
+}
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+  border-color: #ffffff;
+}
+.navbar-default .navbar-link {
+  color: #ffffff;
+}
+.navbar-default .navbar-link:hover {
+  color: #1976cc;
+}
+
+@media (max-width: 767px) {
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+    color: #ffffff;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+    color: #1976cc;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #1976cc;
+    background-color: #338fe6;
+  }
+}
+
+.your-icon {
+    position: relative;
+    top: -4px;
+    display: inline-block;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    float: left;
+    display: block; /* This is required */
+}
+
+.your-icon.icon-home {
+    background: url(viking.png);
+    background-size: cover;
+}
+
+.your-icon.normal {
+    width: 32px;
+    height: 30px;
+}
+
+.your-icon.small {
+    width: 16px;
+    height: 16px;
+}
+
+.your-icon.medium {
+    width: 64px;
+    height: 64px;
+}
+
+.your-icon.large {
+    width: 128px;
+    height: 128px;
+}
+.form-horizontal{
+	width : 500px;
+}
