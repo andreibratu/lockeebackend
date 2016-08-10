@@ -19,107 +19,96 @@ import json
 # SERVER SIDE ####
 
 
-class Register(View):
-    """This view handles the register requests on the web page."""
+def web_welcome(request):
+    """This view displays the welcome page."""
+    if request.user.is_authenticated():
+        return redirect('portal:home')
+    return render(request, 'portal/welcome.html', {})
+
+
+def web_register(request):
+    """This view handles the register requests on the web client."""
     form_class = UserReg
-    template_name = 'portal/registration-form.html'
-
-    def get(self, request):
-        """This function displays the form for user registration."""
-        form = self.form_class(None)
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        """This function submits the form for DB processing and logs in the user if successful."""
-        form = self.form_class(request.POST)
-
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            name = form.cleaned_data['first_name']
-            new_user.username = username
-            new_user.set_password(password)
-            new_user.first_name = name
-            new_user.save()
-            new_owner = Owner(owner=new_user)
-            new_owner.save()
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('portal:my-locks')
-
-        return render(request, self.template_name, {'form': form})
-
-
-class Login(View):
-    """This view handles the login requests on the web page."""
-    form_class = UserLogin
-    template_name = 'portal/login-form.html'
-
-    def get(self, request):
-        """This function displays the form for user login."""
-        if request.user.is_authenticated():
-            return redirect('portal:my-locks')
+    register_form = form_class(request.POST)
+    
+    if request.method == 'POST':
+        if register_form.is_valid():
+            new_user = User()
+            username = register_form.cleaned_data['usermail']
+            password = register_form.cleaned_data['password']
+            name = register_form.cleaned_data['name']
+            try:
+                duplicate_check = User.objects.get(username = username)
+                return render(request, 
+                    'portal/welcome.html', {'error': 'Username already registered'})
+            except User.DoesNotExist:
+                new_user.username = username
+                new_user.set_password(password)
+                new_user.first_name = name
+                new_user.save()
+                new_owner = Owner(owner = new_user)
+                new_owner.save()
+                user = authenticate(username=username, password=password)
+                login(request, user)
+                return redirect('portal:home')
         else:
-            form = self.form_class(None)
-            return render(request, self.template_name, {'form': form})
+            return render(request, 'portal/welcome.html', {'error': 'Invalid register form'})
+    else:
+        return render(request, 'portal/error.html', 
+            {'title': 'Forbidden', 'error': 'You are not supposed to be here ^_^'})
+        
 
-    def post(self, request):
-        """This function submits the form for DB processing and logs in the user if successful."""
-        form = self.form_class(request.POST)
-        error = ''
-
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+def web_login(request):
+    """This view handles the login request on the web client."""
+    form_class = UserLogin
+    login_form = form_class(request.POST)
+    
+    if request.method == 'POST':
+        if login_form.is_valid():
+            username = login_form.cleaned_data['usermail']
+            password = login_form.cleaned_data['password']
             user = authenticate(username=username, password=password)
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    return redirect('portal:my-locks')
+                    return redirect('portal:home')
                 else:
-                    error = 'User is inactive'
+                    return render(request, 'portal/welcome.html', {'error': 'Inactive user'})
             else:
-                error = 'Invalid username or password'
-
-        return render(request, self.template_name, {'form': form, 'error': error})
+                return render(request, 'portal/welcome.html', {'error': 'Invalid credentials'})
+        else:
+            return render(request, 'portal/welcome.html', {'error': 'Invalid login form'}) 
+    else:
+        return render(request, 'portal/error.html', 
+            {'title': 'Forbidden', 'error': 'You are not supposed to be here ^_^'})
 
 
 class Display_My_Locks(LoginRequiredMixin, ListView):
     """This view displays the locks of the logged in user."""
-    login_url = 'portal:login'
+    login_url = 'portal:welcome'
     redirect_field_name = 'redirect_to'
-    template_name = 'portal/my-locks.html'
+    template_name = 'portal/home.html'
 
     def get_queryset(self):
         locks_of_logged_in_user = Owner.objects.get(owner=self.request.user)
         return locks_of_logged_in_user.locks.all()
 
 
-class Add_Lock(LoginRequiredMixin, View):
-    """This view processes the user request for the ownership of a lock."""
-    login_url = 'portal:login'
-    redirect_field_name = 'redirect_to'
+@login_required(login_url='portal:welcome')
+def web_add_lock(request):
+    """This function submits the form for DB processing."""
     form_class = AddLock
-    template_name = 'portal/add-lock-form.html'
-
-    def get(self, request):
-        """This function displays the form for adding a new lock."""
-        form = self.form_class(None)
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        """This function submits the form for DB processing."""
-        form = self.form_class(request.POST)
-
+    form = form_class(request.POST)
+    
+    if request.method == 'POST':
         if form.is_valid():
-            lock_id = form.cleaned_data['lock_id']
-            new_lock_nickname = form.cleaned_data['nickname']
+            lock_id = form.cleaned_data['lockcode']
+            new_lock_nickname = form.cleaned_data['lockname']
             owner = Owner.objects.get(owner=request.user)
             absolute_lock = LockAbsVal.objects.get(lock_inner_id=lock_id)
             try:
                 owner.locks.get(abs_lock=absolute_lock)
-                return render(request, self.template_name, {'form': form, 'error': 'Lock already added'})
+                return render(request, 'portal/welcome.html', {'error': 'Lock already added'})
             except Lock.DoesNotExist:
                 new_relative_lock = Lock()
                 new_relative_lock.nickname = new_lock_nickname
@@ -127,20 +116,23 @@ class Add_Lock(LoginRequiredMixin, View):
                 new_relative_lock.save()
                 owner.locks.add(new_relative_lock)
                 owner.save()
-                return redirect('portal:my-locks')
+                return redirect('portal:home')
         else:
             return HttpResponse('Form error')
+    else:
+        return render(request, 'portal/error.html',
+          {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
 
 
 @login_required(login_url='portal:login')
-def log_out(request):
+def web_logout(request):
     """This view logs the user out."""
     logout(request)
     return render(request, 'portal/logout.html', {})
 
 
 @login_required(login_url='portal:login')
-def share(request, lock_nickname):
+def web_share(request, lock_nickname):
     """This view redirects the user to the share menu of a lock."""
     logged_in_owner = Owner.objects.get(owner=request.user)
     lock_to_be_shared = logged_in_owner.locks.get(nickname=lock_nickname)
@@ -148,7 +140,7 @@ def share(request, lock_nickname):
 
 
 @login_required(login_url='portal:login')
-def generate_code(request, lock_nickname):
+def web_generate_code(request, lock_nickname):
     """This view generates a new share code at user's demand."""
     logged_in_owner = Owner.objects.get(owner=request.user)
     lock_to_change = logged_in_owner.locks.get(nickname=lock_nickname)
@@ -161,27 +153,31 @@ def generate_code(request, lock_nickname):
 
 
 @login_required(login_url='portal:login')
-def profile(request):
+def web_profile(request):
     """This view handles the user's profile on the web site."""
     return render(request, 'portal/profile.html', {'name': request.user.first_name})
 
 
-def about(request):
+def web_about(request):
     """This view presents the details of this project's godlike developers."""
     return render(request, 'portal/about.html', {})
 
 
 @login_required(login_url='portal:login')
-def portal_mechanic(request, lock_inner_id):
+def web_portal_mechanic(request, lock_inner_id):
     """This view opens/closes a lock via the website."""
-    what_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
+    owner = Owner.objects.get(owner=request.user)
+    what_lock = owner.locks.abs_lock.objects.get(lock_inner_id=lock_inner_id)
     if what_lock.is_opened:
         what_lock.is_opened = False
+        message = "%s is now closed" % what_lock.nickname
         what_lock.save()
     else:
         what_lock.is_opened = True
+        message = "%s is now opened" % what_lock.nickname
         what_lock.save()
-    return render(request, 'portal/my-locks.html', {})
+    return render(request, 'portal/my-locks.html', {'message': message})
+
 
 
 # ANDROID SIDE ###
@@ -288,7 +284,7 @@ def android_locks_query(request):
                 logged_owner = Owner.objects.get(owner=logged_user)
                 try:
                     user_locks = logged_owner.locks.all()
-                    lock_info = [{'nickname': lock.nickname, 'share_id': lock.share_id, 'is_opened': lock.abs_lock.is_opened} for lock in user_locks]
+                    lock_info = {'locks_info': [{'nickname': lock.nickname, 'share_id': lock.share_id, 'is_opened': lock.abs_lock.is_opened} for lock in user_locks]}
                     json_response = json.dumps(lock_info)
                     return HttpResponse(json_response)
                 except Lock.DoesNotExist:

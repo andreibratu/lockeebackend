@@ -5,7 +5,8 @@
         <title> {% block title %} Lockee {% endblock %}</title>
         {% load staticfiles %}
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-        <link href="https://fonts.googleapis.com/css?family=Righteous" rel="stylesheet">
+        <link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
+		<link rel="stylesheet" type="text/css" href="{% static 'portal/normalize.css' %}"/>
         <link rel="stylesheet" type="text/css" href="{% static 'portal/style.css' %}"/>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
@@ -21,9 +22,6 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <p class="navbar-brand">
-                        <span class="your-icon icon-home normal" aria-hidden="true"></span>&nbsp; Lockee!
-                    </p>
                 </div>
 
                 <!-- Nav Bar Items -->
@@ -33,33 +31,32 @@
                         {% if user.is_authenticated %}
                         <!-- Logged-in user's locks -->
                         <li class="">
-                            <a href="{% url 'portal:my-locks' %}">
-                                <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>&nbsp; My Locks
+                            <a href="{% url 'portal:home' %}">
+                                <span class="glyphicon glyphicon-home" aria-hidden="true"></span>&nbsp; Home
                             </a>
                         </li>
-                        <!-- Add a new lock -->
                         <li class="">
                             <a href="{% url 'portal:add-lock' %}">
-                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp; Add Lock
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp; Add A Lock
                             </a>
                         </li>
                         {% endif %}
                     </ul>
                     <!-- Right-sided navbar items -->
                     <ul class="nav navbar-nav navbar-right">
-                        <!-- About us ^_^ -->
+                        <!-- Contact us -->
+						<li>
+                            <a href="">
+                                <span aria-hidden="true"></span>&nbsp; {{user.first_name}}
+                            </a>
+                        </li>
+						<!-- About us ^_^ -->
                         <li>
                             <a href="{% url 'portal:about' %}">
-                                <span class="glyphicons glyphicons-tag" aria-hidden="true"></span>&nbsp; About
+                                <span aria-hidden="true"></span>&nbsp; About
                             </a>
                         </li>
                         {% if user.is_authenticated %}
-                        <!-- User's profile redirect -->
-                        <li class="#">
-                            <a href="{% url 'portal:profile' %}">
-                                <span class="glyphicon glyphicon-profile" aria-hidden="true"></span>&nbsp; {{ user.first_name }} {{user.last_name}}
-                            </a>
-                        </li>
                         <!-- User Logout -->
                         <li class="#">
                             <a href="{% url 'portal:logout' %}">
@@ -67,10 +64,9 @@
                             </a>
                         </li>
                         {% else %}
-                        <!-- User Login -->
-                        <li>
-                            <a href="{% url 'portal:login' %}">
-                                <span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp; Log In
+                        <li class="#">
+                            <a href="{% url 'portal:welcome' %}">
+                                <span class="glyphicon glyphicon-keys" aria-hidden='true'></span>&nbsp; Log In 
                             </a>
                         </li>
                         {% endif %}

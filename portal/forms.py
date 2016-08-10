@@ -3,49 +3,29 @@ from django import forms
 from .models import Lock
 
 
-class UserReg(forms.ModelForm):
-    username = forms.CharField(label='Your email')
-    first_name = forms.CharField(label='Your name')
-    password = forms.CharField(label='Choose a password', widget=forms.PasswordInput)
-
-    class Meta:
-        model = User
-        fields = ['username', 'first_name', 'password']
+class UserReg(forms.Form):
+    usermail = forms.EmailField()
+    name = forms.CharField()
+    password = forms.CharField()
 
 
 class UserLogin(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    usermail = forms.EmailField()
+    password = forms.CharField()
 
-    class Meta:
-        model = User
-        fields = ['username', 'password']
 
 
 class AndroLogin(forms.Form):
     username = forms.CharField()
     password = forms.CharField()
 
-    class Meta:
-        model = User
-        fields = ['username', 'password']
-
 
 class AddLock(forms.Form):
-    lock_id = forms.CharField(label="Your Lockee's ID")
-    nickname = forms.CharField(label='Give it a nickname')
-
-    class Meta:
-        model = Lock
-        fields = ['lock_id', 'nickname', ]
+    lockcode = forms.CharField()
+    lockname = forms.CharField()
 
 
 class AndroRegister(forms.ModelForm):
-
-    class Meta:
-         model = User
-         fields = ['username', 'first_name', 'password']
-
     username = forms.CharField()
     name = forms.CharField()
     password = forms.CharField()
