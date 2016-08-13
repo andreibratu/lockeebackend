@@ -1,88 +1,88 @@
-{% extends 'portal/base.html' %}
-{% block title %}Home{% endblock %}
+{% extends 'portal/base.html' %} {% block title %}Home{% endblock %} {% block body %}
+<!-- Display error in case there is one -->
+{% if '{{error}}' %}
+<div class="col-sm-offset-2 col-sn-16">
+    <p> {{error}} </p>
+    <br>
+</div>
+{% endif %}
+<div class="container-fluid text-center" align="center">
+    <div class="row content">
+        <div class="col-sm-1 indent">
 
-{% block body %}
- <!-- Display error in case there is one -->
-    {% if '{{error}}' %}
-        <div class="col-sm-offset-2 col-sn-10">
-            <p> {{error}} </p>
-            <br>
         </div>
-    {% endif %}
-	<div class="container-fluid text-center">
-		<div class="row content">
-			<div class="col-sm-1 indent">
-		</div>
-    <div class="col-sm-2 sidenav">
-       <a href="{% url 'portal:profile' %}">
-             <span class="glyphicon glyphicon-profile" aria-hidden="true"></span> {{ user.first_name }} {{ user.username }}
-       </a>
-    </div>
-	<div class="col-sm-6 noname">
-	{% if object_list %}
-        <table style="width:40%" align="center" border="0">
-            {% for iterator in object_list %}
-                <tr width="80%">
+        <div class="col-sm-2 sidenav">
+            <a href="">
+                <span class="glyphicon glyphicon-profile" aria-hidden="true"></span> {{ user.first_name }} <br>{{ user.username }}
+            </a>
+        </div>
+        <div class="col-sm-1 new">
+
+        </div>
+        <div class="col-sm-6 noname">
+            {% if object_list %}
+            <h2>List of locks</h2>
+            <table style="width:40%" align="center" border="0">
+                {% for iterator in object_list %}
+                <tr>
                     <th>{{iterator.nickname}}</th>
                     <!-- Share Button -->
                     <th>
-                        <div class="col-sm-offset-2 col-sn-30">
-                            <form action="{% url 'portal:share' iterator.nickname %}" method="get" >
-                                {% csrf_token %}
-                                <input type="hidden">
-                                <button type="submit" class="btn btn-primary btn-md"> Share </button>
-                            </form>
-                        </div>
+                        <!--<div class="col-sm-offset-2 col-sn-30">-->
+                        <form action="{% url 'portal:share' iterator.nickname %}" method="get">
+                            {% csrf_token %}
+                            <input type="hidden">
+                            <button type="submit" class="btn btn-primary btn-md"> Share </button>
+                        </form>
+                        <!--</div>-->
                     </th>
                     <!-- Open Close Door -->
                     <th>
                         {% if iterator.is_opened %}
-                            <div class="col-sm-offset-2 col-sn-30">
-                                <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get" >
-                                    {% csrf_token %}
-                                    <input type="hidden">
-                                    <button type="submit" class="btn btn-primary btn-md"> Open! </button>
-                                </form>
-                            </div>
+                        <!--<div class="col-sm-offset-2 col-sn-30">-->
+                        <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get">
+                            {% csrf_token %}
+                            <input type="hidden">
+                            <button type="submit" class="btn btn-primary btn-md"> Open! </button>
+                        </form>
+                        <!--</div>-->
                         {% else %}
-                            <div class="col-sm-offset-2 col-sn-30">
-                                <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get" >
-                                    {% csrf_token %}
-                                    <input type="hidden">
-                                    <button type="submit" class="btn btn-danger btn-md"> Close! </button>
-                                </form>
-                            </div>
+                        <!--<div class="col-sm-offset-2 col-sn-30">-->
+                        <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get">
+                            {% csrf_token %}
+                            <input type="hidden">
+                            <button type="submit" class="btn btn-danger btn-md"> Close! </button>
+                        </form>
+                        <!--</div>-->
                         {% endif %}
-                        &nbsp;
                     </th>
                 </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        <h1> No Locks ! :( </h1>
-    {% endif %}
-	</div>
-	<div class="col-sm-10 sidenav">
-	<!-- Add Lock Form -->
-   <form class="add_a_lock cf" action="{% url 'portal:add-lock' %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-		<ul>
-				<li>
-					<label for="lockname">Give it a nickname</label>
-					<input type="lockname" name="lockname" placeholder="The best lock ever"  required>
-				</li>
-				<li>
-					<label for="lockcode">Lock's inner ID</label>
-					<input type="lockcode" name="lockcode" placeholder="Inner ID" required></li>
-				<li>
-					<input type="submit" class="btn btn-success" value="Add the lock">
-				</li>
-			</ul>
-    
-    </form>
-	</div>
-  </div>
+                {% endfor %}
+            </table>
+            {% else %}
+            <h1> No Locks ! :( </h1> {% endif %}
+        </div>
+        <div class="col-sm-1 new">
+
+        </div>
+        <!-- Add Lock Form -->
+        <form class="col-sm-10 add_a_lock cf" action="{% url 'portal:add-lock' %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <ul>
+                <li>
+                    <label for="lockname">Give it a nickname</label>
+                    <input type="text" name="lockname" placeholder="The best lock ever" required>
+                </li>
+                <li>
+                    <label for="lockcode">Lock's inner ID</label>
+                    <input type="text" name="lockcode" placeholder="Inner ID" required></li>
+                <li>
+                    <input type="submit" class="btn btn-success" value="Add the lock">
+                </li>
+            </ul>
+        </form>
+    </div>
 </div>
-	
+
+
 {% endblock %}
-	

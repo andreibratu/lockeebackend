@@ -11,7 +11,7 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     </head>
-    <body>
+    <body align="center">
         <nav class="navbar navbar-default">
             <div class="container-fluid">
 
@@ -35,21 +35,12 @@
                                 <span class="glyphicon glyphicon-home" aria-hidden="true"></span>&nbsp; Home
                             </a>
                         </li>
-                        <li class="">
-                            <a href="{% url 'portal:add-lock' %}">
-                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp; Add A Lock
-                            </a>
-                        </li>
                         {% endif %}
                     </ul>
                     <!-- Right-sided navbar items -->
                     <ul class="nav navbar-nav navbar-right">
                         <!-- Contact us -->
-						<li>
-                            <a href="">
-                                <span aria-hidden="true"></span>&nbsp; {{user.first_name}}
-                            </a>
-                        </li>
+			
 						<!-- About us ^_^ -->
                         <li>
                             <a href="{% url 'portal:about' %}">

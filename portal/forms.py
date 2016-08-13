@@ -15,7 +15,7 @@ class UserLogin(forms.Form):
 
 
 
-class AndroLogin(forms.Form):
+class AndroidLogin(forms.Form):
     username = forms.CharField()
     password = forms.CharField()
 
@@ -25,19 +25,25 @@ class AddLock(forms.Form):
     lockname = forms.CharField()
 
 
-class AndroRegister(forms.ModelForm):
+class AndroidRegister(forms.Form):
     username = forms.CharField()
     name = forms.CharField()
     password = forms.CharField()
 
 
-class VerifyAndro(forms.Form):
+class VerifyAndroid(forms.Form):
     username = forms.CharField(label='username')
 
 
-class LockWorker(forms.Form):
+class AndroidGetLocks(forms.Form):
     username = forms.CharField()
 
 
 class AndroidOpenLock(forms.Form):
     lock_inner_id = forms.CharField()
+
+
+class AndroidAddLock(forms.Form):
+    username = forms.CharField()
+    lock_inner_id = forms.CharField()
+    nickname = forms.CharField() 

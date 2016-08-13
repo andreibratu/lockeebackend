@@ -9,10 +9,9 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from forms import UserReg, UserLogin, AddLock, VerifyAndro, AndroidOpenLock, LockWorker
+from forms import UserReg, UserLogin, AddLock, VerifyAndroid, AndroidOpenLock, AndroidGetLocks, AndroidLogin, AndroidRegister, AndroidAddLock
 from django.contrib.auth.mixins import LoginRequiredMixin
 from portal.models import Owner, LockAbsVal, Lock
-from portal.forms import AndroLogin, AndroRegister
 import json
 
 
@@ -83,15 +82,11 @@ def web_login(request):
             {'title': 'Forbidden', 'error': 'You are not supposed to be here ^_^'})
 
 
-class Display_My_Locks(LoginRequiredMixin, ListView):
-    """This view displays the locks of the logged in user."""
-    login_url = 'portal:welcome'
-    redirect_field_name = 'redirect_to'
-    template_name = 'portal/home.html'
-
-    def get_queryset(self):
-        locks_of_logged_in_user = Owner.objects.get(owner=self.request.user)
-        return locks_of_logged_in_user.locks.all()
+@login_required(login_url='portal:welcome')
+def web_display_locks(request, error=''):
+    what_owner = Owner.objects.get(owner=request.user)
+    locks_of_logged_in_user = what_owner.locks.all()
+    return render(request, 'portal/home.html', {'object_list': locks_of_logged_in_user, 'error': error})
 
 
 @login_required(login_url='portal:welcome')
@@ -102,23 +97,28 @@ def web_add_lock(request):
     
     if request.method == 'POST':
         if form.is_valid():
-            lock_id = form.cleaned_data['lockcode']
-            new_lock_nickname = form.cleaned_data['lockname']
+            error=''
+            lock_inner_id = form.cleaned_data['lockcode']
+            nickname = form.cleaned_data['lockname']
             owner = Owner.objects.get(owner=request.user)
-            absolute_lock = LockAbsVal.objects.get(lock_inner_id=lock_id)
             try:
-                owner.locks.get(abs_lock=absolute_lock)
-                return render(request, 'portal/welcome.html', {'error': 'Lock already added'})
-            except Lock.DoesNotExist:
-                new_relative_lock = Lock()
-                new_relative_lock.nickname = new_lock_nickname
-                new_relative_lock.abs_lock = absolute_lock
-                new_relative_lock.save()
-                owner.locks.add(new_relative_lock)
-                owner.save()
-                return redirect('portal:home')
-        else:
-            return HttpResponse('Form error')
+                abs_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
+                try:
+                    lock_already_added = owner.locks.get(abs_lock=abs_lock)
+                    error = 'You have already added this lock'
+                except Lock.DoesNotExist:
+                    try:
+                        nickname_already_used = owner.locks.get(nickname=nickname)
+                        error = 'You have already used this nickname'
+                    except Lock.DoesNotExist:
+                        new_lock = Lock(abs_lock=abs_lock, nickname=nickname)
+                        new_lock.save()
+                        owner.locks.add(new_lock)
+                        owner.save()
+                        web_display_locks(request)
+            except LockAbsVal.DoesNotExist:
+                error = 'The Lock Does Not Exist'
+            web_display_locks(request, error)
     else:
         return render(request, 'portal/error.html',
           {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
@@ -128,7 +128,7 @@ def web_add_lock(request):
 def web_logout(request):
     """This view logs the user out."""
     logout(request)
-    return render(request, 'portal/logout.html', {})
+    return render(request, 'portal/welcome.html', {})
 
 
 @login_required(login_url='portal:login')
@@ -187,7 +187,7 @@ def web_portal_mechanic(request, lock_inner_id):
 def android_login(request):
     """This view handles the login requests that come from the android terminal."""
     if request.method == 'POST':
-        form = AndroLogin(request.POST)
+        form = AndroidLogin(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
@@ -207,9 +207,9 @@ def android_login(request):
 def android_register(request):
     """This view handles the register requests that come from the an android terminal."""
     if request.method == 'POST':
-        form = AndroRegister(request.POST)
+        form = AndroidRegister(request.POST)
         if form.is_valid():
-            new_user = form.save(commit=False)
+            new_user = User()
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             full_name = form.cleaned_data['name']
@@ -231,7 +231,8 @@ def android_register(request):
 def android_verify(request):
     """This view helps the android terminal check username availability in real time."""
     if request.method == 'POST':
-        form = VerifyAndro(request.POST)
+        
+        form = VerifyAndroid(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             try:
@@ -276,7 +277,7 @@ def android_mechanic(request):
 def android_locks_query(request):
     """This view sends to the android terminal the locks the user has access to."""
     if request.method == 'POST':
-        form = LockWorker(request.POST)
+        form = AndroidGetLocks(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             try:
@@ -296,6 +297,50 @@ def android_locks_query(request):
     else:
         return render(request, 'portal/error.html',
                       {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
+
+
+@csrf_exempt
+def android_ping(request):
+    """This lets the Android client ping the server to try server connection."""
+    if request.method == 'GET':
+        return HttpResponse('received')
+    else:
+        return render(request, 'portal/error.html',
+                      {'title': 'Forbidden', 'message': 'You are not supposed to post anything here ^_^'})
+    
+    
+@csrf_exempt
+def android_add_lock(request):
+    """Allows the android terminal to add a lock into the DB."""
+    if request.method == "POST":
+        form = AndroidAddLock(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            lock_inner_id = form.cleaned_data['lock_inner_id']
+            nickname = form.cleaned_data['nickname']
+            the_user = User.objects.get(username=username)
+            try:
+                owner = Owner.objects.get(owner=the_user)
+                try:
+                    duplicate_nickname_check = owner.locks.objects.get(nickname=nickname)
+                    return HttpResponse('nickname already used')
+                except Lock.DoesNotExist:
+                    abs_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
+                    try:
+                        abs_lock_already_added_check = owner.locks.objects.get(abs_lock=abs_lock)
+                        return HttpResponse('this lock was already registered')
+                    except Lock.DoesNotExist:
+                        owner.locks.add(abs_lock=abs_lock, nickname=nickname)
+                        owner.save()
+                        return HttpResponse('success')
+            except:
+                return HttpResponse('user does not exist')
+        else:
+            return HttpResponse('invalid form')
+    else:
+        return render(request, 'portal/error.html',
+            {'title': 'Forbidden', 'message': 'You are not supposed to post anything here ^_^'})
+                
 
 
 # ARDUINO SIDE

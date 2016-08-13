@@ -119,8 +119,7 @@ label {
 }
 .add_a_lock{
 	width: 270px;
-	margin: 50px auto;
-	margin-right: 150px;
+	margin: 25px auto;
 	position: relative;
 	padding: 25px;
 	background-color: rgba(250,250,250,0.5);
@@ -142,7 +141,6 @@ label {
 .add_a_lock input:not([type=submit]) {
 	width: 220px;
 	padding: 5px;
-	margin-right: 10px;
 	border: 1px solid rgba(0, 0, 0, 0.3);
 	border-radius: 3px;
 	box-shadow: inset 0px 1px 3px 0px rgba(0, 0, 0, 0.1), 
@@ -282,29 +280,76 @@ label {
 /* Set height of the grid so .sidenav can be 100% (adjust as needed) */
     .row.content {height: 1000px}
     
+    .new {
+      background-color: white;
+      height: 100%;
+      width: 1%;  
+    }
     .indent {
       background-color: white;
       height: 100%;
-      width: 50px;     }
+      width: 3%;     }
     /* Set gray background color and 100% height */
     .sidenav {
-      width: 270px;
+      width: 20%;
       background-color: white;
-      height: 100%;
+      height: 10%;
+	  margin: 25px auto;
+	  position: relative;
+	  padding: 25px;
+	  background-color: rgba(250,250,250,0.5);
+	  border-radius: 5px;
+      box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2), 
+    			inset 0px 1px 0px 0px rgba(250, 250, 250, 0.5);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+}
+	.last{
+	  width: 20%;
+      background-color:white;
+      height: 10%;
+	  margin: 25px auto;
+	  position: relative;
+	  padding: 25px;
+	
     }
     .noname {
-	  padding: 0;
-      width: 700px;
+      width: 50%;
       background-color:white;
-      height: 100%;
+      height: 50%;
+	  margin: 25px auto;
+	  position: relative;
+	  padding: 25px;
+	  background-color: rgba(250,250,250,0.5);
+	  border-radius: 5px;
+      box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2), 
+    			inset 0px 1px 0px 0px rgba(250, 250, 250, 0.5);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      vertical-align: middle;
+}
 	}
     
     /* On small screens, set height to 'auto' for sidenav and grid */
     @media screen and (max-width: 767px) {
       .sidenav {
-        width:500px;
+        width:10px;
         height: auto;
         padding: 15px;
       }
       .row.content {height:auto;}
     }
+    
+.center {
+    margin: 0 auto;
+    width: 80%;
+}
+.row-centered {
+    text-align:center;
+}
+.col-centered {
+    display:inline-block;
+    float:none;
+    /* reset the text-align */
+    text-align:left;
+    /* inline-block space fix */
+    margin-right:-4px;
+}
