@@ -428,10 +428,27 @@ def android_remove(request):
     else:
         return render(request, 'portal/forbidden.html', {})
     
-
+    
 @csrf_exempt
-def android_open_sharecode(request):
-    """Allows an android terminal to unlock the door by share_id."""
+def android_share_code(request):
+    """Checks share_id sent by android terminal."""
+    if request.method == 'POST':
+        form = ShareIDOpen(request.POST)
+        if form.is_valid():
+            shareID = form.cleaned_data['shareID']
+            try:
+                what_lock = Lock.objects.get(share_id=shareID)
+                return HttpResponse(what_lock.nickname)
+            except Lock.DoesNotExist:
+                return HttpResponse('wrong code')
+        else:
+            return HttpResponse('bad form')
+    else:
+        return render(request, 'portal/forbidden.html', {})
+        
+@csrf_exempt
+def android_share_ping(request):
+    """Returns a lock's status to androdi terminal."""
     if request.method == 'POST':
         form = ShareIDOpen(request.POST)
         if form.is_valid():
@@ -439,15 +456,37 @@ def android_open_sharecode(request):
             try:
                 what_lock = Lock.objects.get(share_id=shareID)
                 if what_lock.abs_lock.is_opened:
-                    what_lock.abs_lock.is_opened = False
-                    what_lock.save()
-                    return HttpResponse('closed')
+                    return HttpResponse('unlocked')
                 else:
-                    what_lock.abs_lock.is_opened = True
-                    what_lock.save()
-                    return HttpResponse('opened')
+                    return HttpResponse('locked')
             except Lock.DoesNotExist:
-                return HttpResponse('bad code')
+                return HttpResponse('wrong code')
+        else:
+            return HttpResponse('bad form')
+    else:
+        return render(request, 'portal/forbidden.html', {})
+
+
+@csrf_exempt
+def android_share_mechanic(request):
+    """Allows an android terminal to unlock the door by share_id."""
+    if request.method == 'POST':
+        form = ShareIDOpen(request.POST)
+        if form.is_valid():
+            shareID = form.cleaned_data['shareID']
+            what_lock = Lock.objects.get(share_id=shareID)
+            if what_lock.abs_lock.is_opened:
+                what_lock.abs_lock.is_opened = False
+                what_lock.abs_lock.save()
+                what_lock.save()
+                return HttpResponse('locked')
+            else:
+                what_lock.abs_lock.is_opened = True
+                what_lock.abs_lock.save()
+                what_lock.save()
+                return HttpResponse('unlocked')
+        else:
+            return HttpResponse('bad format')
     else:
         return render(request, 'portal/forbidden.html', {})
 
@@ -461,10 +500,16 @@ def arduino_mechanic(request):
         try:
             already_registered_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
             is_opened = already_registered_lock.is_opened
-            if is_opened:
-                return HttpResponse('#unlocked')
+            if already_registered_lock.orientation == 'left':
+                if is_opened:
+                    return HttpResponse('#unlocked')
+                else:
+                    return HttpResponse('#locked')
             else:
-                return HttpResponse('#locked')
+                if is_opened:
+                    return HttpResponse('#locked')
+                else:
+                    return HttpResponse('#unlocked')
         except LockAbsVal.DoesNotExist:
             new_registration_lock = LockAbsVal(lock_inner_id=lock_inner_id)
             new_registration_lock.save()

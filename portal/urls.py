@@ -23,7 +23,10 @@ urlpatterns = [
     url(r'^android/add_lock/$', views.android_add_lock),
     url(r'^android/ping/$', views.android_ping),
     url(r'^android/generate/$', views.android_generate_code,),
-    url(r'android/remove/$', views.android_remove,),
+    url(r'^android/remove/$', views.android_remove,),
+    url(r'^android/share_check/$', views.android_share_code, ),
+    url(r'^android/share_mechanic/$', views.android_share_mechanic, ),
+    url(r'^android/share_ping/$', views.android_share_ping, ),
     # Arduino
     url(r'^arduino/ping/$', views.arduino_mechanic),
 ]
