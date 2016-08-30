@@ -1,14 +1,14 @@
 {% extends 'portal/base.html' %}
 {% block title %} Share {% endblock %}
 {% block body %}
-    <p> To share {{what_lock.nickname}} pass this code around </p>
+    <div class="share">
+    <p> To share {{what_lock.nickname}} pass this code around : </p>
     {% if what_lock.share_id %}
-        <p> {{what_lock.share_id}} </p>
+        <p><b><font size="5">{{what_lock.share_id}} </font></b></p>
     {% else %}
         <p> {{what_lock.nickname}} has no code at the moment ..</p>
     {% endif %}
     <p> Use the button below to get a new code </p>
-    <br>
     <br>
     <!-- Generate Button -->
     <div class="">
@@ -17,5 +17,6 @@
             <input type="hidden">
             <button type="submit" class="btn btn-success btn-md"> Generate! </button>
         </form>
+    </div>
     </div>
 {% endblock %}

@@ -3,14 +3,14 @@
 
 {% block body %}
 
-    <!-- Display error in case there is one -->
-    {% if '{{error}}' %}
-        <div class="col-sm-offset-2 col-sn-10">
-            <p> {{error}} </p>
-            <br>
-        </div>
-    {% endif %}
+<!-- Display message in case there is one -->
+{% if '{{error}}' %}
+<div class="error">
+    {{error}}
+</div>
+{% endif %} {% load static %}
 
+<div id="content">
     <!-- Login Form -->
     <form class="loginform cf" action="{% url 'portal:login' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -32,7 +32,7 @@
     <!--&nbsp;-->
     
     <!-- Register Form -->
-	<form class="registerform cf" action="{% url 'portal:register' %}" method="post" enctype="multipart/form-data">
+	<form class="registerform cf" action="{% url 'portal:register' %}" method="post" enctype="multipart/form-data" autocomplete="off">
 		{% csrf_token %}
 		<ul>
             <li>
@@ -41,7 +41,7 @@
    	        </li>
 			<li>
 				<label for="usermail">Email</label>
-				<input type="email" name="usermail" placeholder="youremail@example.com"  required>
+				<input type="email" name="usermail" placeholder="youremail@example.com" required>
 			</li>
 			<li>
 				<label for="password">Password</label>
@@ -52,5 +52,5 @@
 			</li>
 		</ul>
 	</form>
-
+</div>
 {% endblock %}

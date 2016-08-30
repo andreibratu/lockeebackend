@@ -23,6 +23,7 @@ class AndroidLogin(forms.Form):
 class AddLock(forms.Form):
     lockcode = forms.CharField()
     lockname = forms.CharField()
+    orientation = forms.ChoiceField(widget=forms.RadioSelect(), choices=[('left', 'left'), ('right', 'right')])
 
 
 class AndroidRegister(forms.Form):
@@ -46,4 +47,14 @@ class AndroidOpenLock(forms.Form):
 class AndroidAddLock(forms.Form):
     username = forms.CharField()
     lock_inner_id = forms.CharField()
-    nickname = forms.CharField() 
+    nickname = forms.CharField()
+    orientation = forms.CharField()
+    
+
+class AndroidGenerateCode(forms.Form):
+    username = forms.CharField()
+    nickname = forms.CharField()
+    
+    
+class ShareIDOpen(forms.Form):
+    shareID = forms.CharField()

@@ -1,88 +1,98 @@
-{% extends 'portal/base.html' %} {% block title %}Home{% endblock %} {% block body %}
-<!-- Display error in case there is one -->
+{% extends 'portal/base.html' %} {% block title %} Home {% endblock %} {% block body %}
+
+<!-- Display message in case there is one -->
 {% if '{{error}}' %}
-<div class="col-sm-offset-2 col-sn-16">
-    <p> {{error}} </p>
-    <br>
+<div class="error">
+    {{error}}
 </div>
-{% endif %}
-<div class="container-fluid text-center" align="center">
-    <div class="row content">
-        <div class="col-sm-1 indent">
+{% endif %} {% load static %}
 
-        </div>
-        <div class="col-sm-2 sidenav">
-            <a href="">
-                <span class="glyphicon glyphicon-profile" aria-hidden="true"></span> {{ user.first_name }} <br>{{ user.username }}
-            </a>
-        </div>
-        <div class="col-sm-1 new">
-
-        </div>
-        <div class="col-sm-6 noname">
-            {% if object_list %}
-            <h2>List of locks</h2>
-            <table style="width:40%" align="center" border="0">
-                {% for iterator in object_list %}
-                <tr>
-                    <th>{{iterator.nickname}}</th>
+<div id="content">
+    <div class="sidenav">
+        <img class="profile-pic" style="float:left" src="{% static 'portal/profile.jpg' %}" alt="Profile Image" width="64px" height="64px">
+        <p class="small" style="padding-left:72px">
+            <br>
+            <span class="glyphicon glyphicon-profile" aria-hidden="true"></span>
+            <font size="4"><b>{{ user.first_name }}</b></font>
+            <br>
+            <span class="glyphicon glyphicon-profile" aria-hidden="true"></span>
+            <font color="gray" size="2">{{ user.username }}</font>
+            <br>
+        </p>
+    </div>
+    <div class="noname">
+        {% if object_list %}
+        <h1>Your Lockees</h1> 
+        {% for iterator in object_list %}
+            <div style="height:92px">
+                <hr class="style">
+                <div class="nickname-width" style="margin-top:-25px;width:100%">
+                    <div style="padding-left:25px;float:left;width:100%">
+                        <font class="nickname">{{iterator.nickname}}</font>
+                        <a href="{% url 'portal:delete' iterator.nickname %}"><span style="padding-right:20px;padding-top:5px" class="glyphicon glyphicon-remove"></span></a>
+                    </div>
+                </div>
+                <div style="width:100%">
+                    
                     <!-- Share Button -->
-                    <th>
-                        <!--<div class="col-sm-offset-2 col-sn-30">-->
-                        <form action="{% url 'portal:share' iterator.nickname %}" method="get">
-                            {% csrf_token %}
-                            <input type="hidden">
-                            <button type="submit" class="btn btn-primary btn-md"> Share </button>
-                        </form>
-                        <!--</div>-->
-                    </th>
+                    <form style="float:left;padding-left:25px" action="{% url 'portal:generate' iterator.nickname %}" method="get">
+                        {% csrf_token %}
+                        <input type="hidden">
+                        <button type="submit" class="btn btn-primary btn-md"> Share </button>
+                    </form>
+                    
                     <!-- Open Close Door -->
-                    <th>
-                        {% if iterator.is_opened %}
-                        <!--<div class="col-sm-offset-2 col-sn-30">-->
-                        <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get">
+                    {% if iterator.abs_lock.is_opened %}
+                        <form style="float:left;padding-left:25px" action="{% url 'portal:portal-mechanic' iterator.abs_lock.lock_inner_id iterator.nickname %}" method="get">
                             {% csrf_token %}
                             <input type="hidden">
-                            <button type="submit" class="btn btn-primary btn-md"> Open! </button>
+                            <button type="submit" class="btn btn-primary btn-md"> Lock </button>
                         </form>
-                        <!--</div>-->
-                        {% else %}
-                        <!--<div class="col-sm-offset-2 col-sn-30">-->
-                        <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get">
+                    {% else %}
+                        <form style="float:left;padding-left:25px" action="{% url 'portal:portal-mechanic' iterator.abs_lock.lock_inner_id iterator.nickname %}" method="get">
                             {% csrf_token %}
                             <input type="hidden">
-                            <button type="submit" class="btn btn-danger btn-md"> Close! </button>
+                            <button type="submit" class="btn btn-error btn-md"> Unlock </button>
                         </form>
-                        <!--</div>-->
-                        {% endif %}
-                    </th>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <h1> No Locks ! :( </h1> {% endif %}
+                    {% endif %}
+                    
+                    <!-- Share ID -->
+                    <p color=blue> Share ID : {{iterator.share_id}}</p>
+                </div>
+            </div>
+        {% endfor %}
+        <hr class="bottom-style"> {% else %}
+        <h1> No Locks ! :( </h1> {% endif %}
+    </div>
+    <div class="last">
+        <div style="width:100%">
+            <!-- Add Lock Form -->
+            <form class="add_a_lock cf" action="{% url 'portal:add-lock' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <ul>
+                    <li>
+                        <label for="lockname">Give it a nickname</label>
+                        <input type="text" name="lockname" placeholder="The best lock ever" required>
+                    </li>
+                    <li>
+                        <label for="lockcode">Lock's inner ID</label>
+                        <input type="text" name="lockcode" placeholder="Inner ID" required></li>
+                    <li>
+                        <label for="lockswitch">The orientation of the lock</label>
+                        <div class="switch switch-blue">
+                            <input type="radio" class="switch-input" name="orientation" value="left" id="left" checked>
+                            <label for="left" class="switch-label switch-label-off">Left</label>
+                            <input type="radio" class="switch-input" name="orientation" value="right" id="right">
+                            <label for="right" class="switch-label switch-label-on">Right</label>
+                            <span class="switch-selection"></span>
+                        </div>
+                    </li>
+                    <li>
+                        <input type="submit" class="btn btn-success" value="Add the lock">
+                    </li>
+                </ul>
+            </form>
         </div>
-        <div class="col-sm-1 new">
-
-        </div>
-        <!-- Add Lock Form -->
-        <form class="col-sm-10 add_a_lock cf" action="{% url 'portal:add-lock' %}" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <ul>
-                <li>
-                    <label for="lockname">Give it a nickname</label>
-                    <input type="text" name="lockname" placeholder="The best lock ever" required>
-                </li>
-                <li>
-                    <label for="lockcode">Lock's inner ID</label>
-                    <input type="text" name="lockcode" placeholder="Inner ID" required></li>
-                <li>
-                    <input type="submit" class="btn btn-success" value="Add the lock">
-                </li>
-            </ul>
-        </form>
     </div>
 </div>
-
-
 {% endblock %}

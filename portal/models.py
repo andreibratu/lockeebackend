@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 class LockAbsVal(models.Model):
     lock_inner_id = models.CharField(max_length=30)
     is_opened = models.BooleanField(default=True)
+    orientation = models.CharField(max_length=10, default='left')
 
     def __str__(self):
         return self.lock_inner_id
@@ -15,7 +16,7 @@ class Lock(models.Model):
     nickname = models.CharField(max_length=30, default='')
     share_id = models.CharField(max_length=30, default='')
     abs_lock = models.ForeignKey(LockAbsVal, on_delete=models.CASCADE)
-
+    
     def __str__(self):
         return self.nickname
 
