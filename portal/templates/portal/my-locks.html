@@ -1,6 +1,11 @@
 {% extends 'portal/base.html' %}
 {% block title %} My Locks {% endblock %}
 {% block body %}
+
+    {% if message %}
+        <p> {{message}} </p>
+    {% endif %}
+    
     {% if object_list %}
         <table style="width:40%" align="center" border="0">
             {% for iterator in object_list %}

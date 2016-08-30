@@ -1,0 +1,7 @@
+{% extends 'portal/base.html' %}
+{% load static %}
+{% block title %} 404 {% endblock %}
+{% block body %}
+    <p> 500 Server Error </p>
+    <img src="{% static "portal/500.gif" %}" height=300 width=300>
+{% endblock %}

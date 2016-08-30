@@ -9,146 +9,148 @@ from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from forms import UserReg, UserLogin, AddLock, VerifyAndro, AndroidOpenLock, LockWorker
+from forms import ShareIDOpen, UserReg, UserLogin, AddLock, VerifyAndroid, AndroidOpenLock, AndroidGetLocks, AndroidLogin, AndroidRegister, AndroidAddLock, AndroidGenerateCode
 from django.contrib.auth.mixins import LoginRequiredMixin
 from portal.models import Owner, LockAbsVal, Lock
-from portal.forms import AndroLogin, AndroRegister
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 import json
 
 
 # SERVER SIDE ####
 
 
-class Register(View):
-    """This view handles the register requests on the web page."""
+def handler404(request):
+    response = render_to_response('portal/404.html', {},
+                                  context_instance=RequestContext(request))
+    response.status_code = 404
+    return response
+
+
+def handler500(request):
+    response = render_to_response('portal/500.html', {},
+                                  context_instance=RequestContext(request))
+    response.status_code = 500
+    return response
+
+
+def web_welcome(request):
+    """This view displays the welcome page."""
+    if request.user.is_authenticated():
+        return redirect('portal:home')
+    return render(request, 'portal/welcome.html', {})
+
+
+def web_register(request):
+    """This view handles the register requests on the web client."""
     form_class = UserReg
-    template_name = 'portal/registration-form.html'
-
-    def get(self, request):
-        """This function displays the form for user registration."""
-        form = self.form_class(None)
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        """This function submits the form for DB processing and logs in the user if successful."""
-        form = self.form_class(request.POST)
-
-        if form.is_valid():
-            new_user = form.save(commit=False)
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            name = form.cleaned_data['first_name']
-            new_user.username = username
-            new_user.set_password(password)
-            new_user.first_name = name
-            new_user.save()
-            new_owner = Owner(owner=new_user)
-            new_owner.save()
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('portal:my-locks')
-
-        return render(request, self.template_name, {'form': form})
-
-
-class Login(View):
-    """This view handles the login requests on the web page."""
-    form_class = UserLogin
-    template_name = 'portal/login-form.html'
-
-    def get(self, request):
-        """This function displays the form for user login."""
-        if request.user.is_authenticated():
-            return redirect('portal:my-locks')
+    register_form = form_class(request.POST)
+    
+    if request.method == 'POST':
+        if register_form.is_valid():
+            new_user = User()
+            username = register_form.cleaned_data['usermail']
+            password = register_form.cleaned_data['password']
+            name = register_form.cleaned_data['name']
+            try:
+                duplicate_check = User.objects.get(username = username)
+                return render(request, 
+                    'portal/welcome.html', {'error': 'Username already registered'})
+            except User.DoesNotExist:
+                new_user.username = username
+                new_user.set_password(password)
+                new_user.first_name = name
+                new_user.save()
+                new_owner = Owner(owner = new_user)
+                new_owner.save()
+                user = authenticate(username=username, password=password)
+                login(request, user)
+                return redirect('portal:home')
         else:
-            form = self.form_class(None)
-            return render(request, self.template_name, {'form': form})
+            return render(request, 'portal/welcome.html', {'error': 'Invalid register form'})
+    else:
+        return render(request, 'portal/forbidden.html', {})
+        
 
-    def post(self, request):
-        """This function submits the form for DB processing and logs in the user if successful."""
-        form = self.form_class(request.POST)
-        error = ''
-
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
+def web_login(request):
+    """This view handles the login request on the web client."""
+    form_class = UserLogin
+    login_form = form_class(request.POST)
+    
+    if request.method == 'POST':
+        if login_form.is_valid():
+            username = login_form.cleaned_data['usermail']
+            password = login_form.cleaned_data['password']
             user = authenticate(username=username, password=password)
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    return redirect('portal:my-locks')
+                    return redirect('portal:home')
                 else:
-                    error = 'User is inactive'
+                    return render(request, 'portal/welcome.html', {'error': 'Inactive user'})
             else:
-                error = 'Invalid username or password'
-
-        return render(request, self.template_name, {'form': form, 'error': error})
-
-
-class Display_My_Locks(LoginRequiredMixin, ListView):
-    """This view displays the locks of the logged in user."""
-    login_url = 'portal:login'
-    redirect_field_name = 'redirect_to'
-    template_name = 'portal/my-locks.html'
-
-    def get_queryset(self):
-        locks_of_logged_in_user = Owner.objects.get(owner=self.request.user)
-        return locks_of_logged_in_user.locks.all()
-
-
-class Add_Lock(LoginRequiredMixin, View):
-    """This view processes the user request for the ownership of a lock."""
-    login_url = 'portal:login'
-    redirect_field_name = 'redirect_to'
-    form_class = AddLock
-    template_name = 'portal/add-lock-form.html'
-
-    def get(self, request):
-        """This function displays the form for adding a new lock."""
-        form = self.form_class(None)
-        return render(request, self.template_name, {'form': form})
-
-    def post(self, request):
-        """This function submits the form for DB processing."""
-        form = self.form_class(request.POST)
-
-        if form.is_valid():
-            lock_id = form.cleaned_data['lock_id']
-            new_lock_nickname = form.cleaned_data['nickname']
-            owner = Owner.objects.get(owner=request.user)
-            absolute_lock = LockAbsVal.objects.get(lock_inner_id=lock_id)
-            try:
-                owner.locks.get(abs_lock=absolute_lock)
-                return render(request, self.template_name, {'form': form, 'error': 'Lock already added'})
-            except Lock.DoesNotExist:
-                new_relative_lock = Lock()
-                new_relative_lock.nickname = new_lock_nickname
-                new_relative_lock.abs_lock = absolute_lock
-                new_relative_lock.save()
-                owner.locks.add(new_relative_lock)
-                owner.save()
-                return redirect('portal:my-locks')
+                return render(request, 'portal/welcome.html', {'error': 'Invalid credentials'})
         else:
-            return HttpResponse('Form error')
+            return render(request, 'portal/welcome.html', {'error': 'Invalid login form'}) 
+    else:
+        return render(request, 'portal/forbidden.html', {})
+
+
+@login_required(login_url='portal:welcome')
+def web_display_locks(request, message=''):
+    what_owner = Owner.objects.get(owner=request.user)
+    locks_of_logged_in_user = what_owner.locks.all()
+    return render(request, 'portal/home.html', {'object_list': locks_of_logged_in_user, 'error': message})
+
+
+@login_required(login_url='portal:welcome')
+def web_add_lock(request):
+    """This function submits the form for DB processing."""
+    form_class = AddLock
+    form = form_class(request.POST)
+    
+    if request.method == 'POST':
+        if form.is_valid():
+            error=''
+            lock_inner_id = form.cleaned_data['lockcode']
+            nickname = form.cleaned_data['lockname']
+            orientation = form.cleaned_data['orientation']
+            owner = Owner.objects.get(owner=request.user)
+            try:
+                abs_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
+                try:
+                    lock_already_added = owner.locks.get(abs_lock=abs_lock)
+                    error = 'You have already added this lock'
+                except Lock.DoesNotExist:
+                    try:
+                        nickname_already_used = owner.locks.get(nickname=nickname)
+                        error = 'You have already used this nickname'
+                    except Lock.DoesNotExist:
+                        abs_lock.orientation = orientation
+                        abs_lock.save()
+                        new_lock = Lock(abs_lock=abs_lock, nickname=nickname)
+                        new_lock.save()
+                        owner.locks.add(new_lock)
+                        owner.save()
+                        return web_display_locks(request, message='Lock added sucessfully')
+            except LockAbsVal.DoesNotExist:
+                error = 'The Lock Does Not Exist'
+            return web_display_locks(request, error)
+        else:
+            return HttpResponse('bad form')
+    else:
+        return render(request, 'portal/forbidden.html', {})
 
 
 @login_required(login_url='portal:login')
-def log_out(request):
+def web_logout(request):
     """This view logs the user out."""
     logout(request)
-    return render(request, 'portal/logout.html', {})
+    return render(request, 'portal/welcome.html', {})
 
 
 @login_required(login_url='portal:login')
-def share(request, lock_nickname):
-    """This view redirects the user to the share menu of a lock."""
-    logged_in_owner = Owner.objects.get(owner=request.user)
-    lock_to_be_shared = logged_in_owner.locks.get(nickname=lock_nickname)
-    return render(request, 'portal/share.html', {'what_lock': lock_to_be_shared})
-
-
-@login_required(login_url='portal:login')
-def generate_code(request, lock_nickname):
+def web_generate_code(request, lock_nickname):
     """This view generates a new share code at user's demand."""
     logged_in_owner = Owner.objects.get(owner=request.user)
     lock_to_change = logged_in_owner.locks.get(nickname=lock_nickname)
@@ -157,41 +159,54 @@ def generate_code(request, lock_nickname):
         lock_to_change.share_id += choice(ascii_uppercase)
     lock_to_change.save()
     logged_in_owner.save()
-    return redirect(reverse('portal:share', kwargs={'lock_nickname': lock_to_change.nickname}))
+    message = "Here's the new share code for %s" % lock_nickname
+    return web_display_locks(request, message)
 
 
 @login_required(login_url='portal:login')
-def profile(request):
+def web_profile(request):
     """This view handles the user's profile on the web site."""
     return render(request, 'portal/profile.html', {'name': request.user.first_name})
 
 
-def about(request):
+def web_about(request):
     """This view presents the details of this project's godlike developers."""
     return render(request, 'portal/about.html', {})
 
 
 @login_required(login_url='portal:login')
-def portal_mechanic(request, lock_inner_id):
+def web_portal_mechanic(request, lock_inner_id, lock_nickname):
     """This view opens/closes a lock via the website."""
     what_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
     if what_lock.is_opened:
         what_lock.is_opened = False
+        message = "%s is now closed" % lock_nickname
         what_lock.save()
+        return web_display_locks(request, message)
     else:
         what_lock.is_opened = True
+        message = "%s is now opened" % lock_nickname
         what_lock.save()
-    return render(request, 'portal/my-locks.html', {})
+        return web_display_locks(request, message)
+    return HttpResponse('something bad happened')
+
+
+@login_required(login_url='portal:login')
+def web_delete_lock(request, nickname):
+    """This view deletes a relative_lock from the owner's list."""
+    owner = Owner.objects.get(owner=request.user)
+    owner.locks.get(nickname=nickname).delete()
+    message = "%s has been removed from the list" % nickname
+    return web_display_locks(request, message)
 
 
 # ANDROID SIDE ###
-
 
 @csrf_exempt
 def android_login(request):
     """This view handles the login requests that come from the android terminal."""
     if request.method == 'POST':
-        form = AndroLogin(request.POST)
+        form = AndroidLogin(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
@@ -203,17 +218,16 @@ def android_login(request):
         else:
             return HttpResponse('Form Error')
     else:
-        return render(request, 'portal/error.html',
-                      {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
+        return render(request, 'portal/forbidden.html', {})
 
 
 @csrf_exempt
 def android_register(request):
     """This view handles the register requests that come from the an android terminal."""
     if request.method == 'POST':
-        form = AndroRegister(request.POST)
+        form = AndroidRegister(request.POST)
         if form.is_valid():
-            new_user = form.save(commit=False)
+            new_user = User()
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             full_name = form.cleaned_data['name']
@@ -227,15 +241,15 @@ def android_register(request):
         else:
             return HttpResponse('form fail')
     else:
-        return render(request, 'portal/error.html',
-                      {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
+        return render(request, 'portal/forbidden.html', {})
 
 
 @csrf_exempt
 def android_verify(request):
     """This view helps the android terminal check username availability in real time."""
     if request.method == 'POST':
-        form = VerifyAndro(request.POST)
+        
+        form = VerifyAndroid(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             try:
@@ -246,8 +260,7 @@ def android_verify(request):
         else:
             return HttpResponse('wow')
     else:
-        return render(request, 'portal/error.html',
-                      {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
+        return render(request, 'portal/forbidden.html', {})
 
 
 @csrf_exempt
@@ -272,15 +285,14 @@ def android_mechanic(request):
         else:
             return HttpResponse('bad form')
     else:
-        return render(request, 'portal/error.html',
-                      {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
+        return render(request, 'portal/forbidden.html', {})
 
 
 @csrf_exempt
 def android_locks_query(request):
     """This view sends to the android terminal the locks the user has access to."""
     if request.method == 'POST':
-        form = LockWorker(request.POST)
+        form = AndroidGetLocks(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             try:
@@ -288,7 +300,7 @@ def android_locks_query(request):
                 logged_owner = Owner.objects.get(owner=logged_user)
                 try:
                     user_locks = logged_owner.locks.all()
-                    lock_info = [{'nickname': lock.nickname, 'share_id': lock.share_id, 'is_opened': lock.abs_lock.is_opened} for lock in user_locks]
+                    lock_info = {'locks_info': [{'nickname': lock.nickname, 'lock_inner_id': lock.abs_lock.lock_inner_id, 'share_id': lock.share_id, 'status': lock.abs_lock.is_opened} for lock in user_locks]}
                     json_response = json.dumps(lock_info)
                     return HttpResponse(json_response)
                 except Lock.DoesNotExist:
@@ -298,13 +310,149 @@ def android_locks_query(request):
         else:
             return HttpResponse('form error')
     else:
-        return render(request, 'portal/error.html',
-                      {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
+        return render(request, 'portal/forbidden.html', {})
+
+
+@csrf_exempt
+def android_ping(request):
+    """This lets the Android client ping the server to try server connection."""
+    if request.method == 'GET':
+        return HttpResponse('received')
+    else:
+        return render(request, 'portal/forbidden.html', {})
+    
+    
+@csrf_exempt
+def android_add_lock(request):
+    """Allows the android terminal to add a lock into the DB."""
+    if request.method == "POST":
+        form = AndroidAddLock(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            lock_inner_id = form.cleaned_data['lock_inner_id']
+            nickname = form.cleaned_data['nickname']
+            orientation = form.cleaned_data['orientation']
+            the_user = User.objects.get(username=username)
+            try:
+                lock_validity = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
+                try:
+                    owner = Owner.objects.get(owner=the_user)
+                    try:
+                        duplicate_nickname_check = owner.locks.get(nickname=nickname)
+                        return HttpResponse('nickname already used')
+                    except Lock.DoesNotExist:
+                        abs_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
+                        try:
+                            abs_lock_already_added_check = owner.locks.get(abs_lock=abs_lock)
+                            return HttpResponse('this lock was already registered')
+                        except Lock.DoesNotExist:
+                            abs_lock.orientation = orientation
+                            abs_lock.save()
+                            new_lock = Lock(abs_lock=abs_lock, nickname=nickname)
+                            new_lock.save()
+                            owner.locks.add(new_lock)
+                            owner.save()
+                            return HttpResponse('lock registered')
+                except User.DoesNotExist:
+                    return HttpResponse('user does not exist')
+            except LockAbsVal.DoesNotExist:
+                return HttpResponse('lock does not exist')
+        else:
+            return HttpResponse('invalid form')
+    else:
+        return render(request, 'portal/forbidden.html', {})
+
+
+@csrf_exempt
+def android_generate_code(request):
+    """This view generates a new share code at user's demand on android terminal."""
+    if request.method == 'POST':
+        form = AndroidGenerateCode(request.POST)
+        if form.is_valid():
+            nickname = form.cleaned_data['nickname']
+            username = form.cleaned_data['username']
+            what_user = User.objects.get(username=username)
+            logged_in_owner = Owner.objects.get(owner=what_user)
+            lock_to_change = logged_in_owner.locks.get(nickname=nickname)
+            lock_to_change.share_id = ''
+            for i in range(0, 11):
+                lock_to_change.share_id += choice(ascii_uppercase)
+            lock_to_change.save()
+            logged_in_owner.save()
+            return HttpResponse(lock_to_change.share_id)
+        else:
+            return HttpResponse('bad form')
+    else:
+        return render(request, 'portal/forbidden.html', {})
+    
+
+@csrf_exempt
+def android_profile(request):
+    """This view helps the android terminal to get the fullname of the user."""
+    if request.method == 'POST':
+        form = VerifyAndroid(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            full_name = User.first_name
+            try:
+                User.objects.get(username=username)
+                return HttpResponse(full_name)
+            except User.DoesNotExist:
+                return HttpResponse('user does not exist')
+        else:
+            return HttpResponse('wow')
+    else:
+       return render(request, 'portal/forbidden.html', {})
+    
+    
+@csrf_exempt
+def android_remove(request):
+    """Allows removal of locks from android terminal."""
+    if request.method == 'POST':
+        form = AndroidGenerateCode(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            nickname = form.cleaned_data['nickname']
+            try:
+                what_user = User.objects.get(username=username)
+                owner = Owner.objects.get(owner=what_user)
+                try:
+                    owner.locks.get(nickname=nickname).delete()
+                    return HttpResponse('success')
+                except Lock.DoesNotExist:
+                    return HttpResponse('lock error')
+            except User.DoesNotExist:
+                return HttpResponse('user error')
+        else:
+            return HttpResponse('bad form')
+    else:
+        return render(request, 'portal/forbidden.html', {})
+    
+
+@csrf_exempt
+def android_open_sharecode(request):
+    """Allows an android terminal to unlock the door by share_id."""
+    if request.method == 'POST':
+        form = ShareIDOpen(request.POST)
+        if form.is_valid():
+            shareID = form.cleaned_data['shareID']
+            try:
+                what_lock = Lock.objects.get(share_id=shareID)
+                if what_lock.abs_lock.is_opened:
+                    what_lock.abs_lock.is_opened = False
+                    what_lock.save()
+                    return HttpResponse('closed')
+                else:
+                    what_lock.abs_lock.is_opened = True
+                    what_lock.save()
+                    return HttpResponse('opened')
+            except Lock.DoesNotExist:
+                return HttpResponse('bad code')
+    else:
+        return render(request, 'portal/forbidden.html', {})
 
 
 # ARDUINO SIDE
-
-
 @csrf_exempt
 def arduino_mechanic(request):
     """This view is pinged by the arduino clients to check for changes in db ( every 1 sec )"""
@@ -314,7 +462,7 @@ def arduino_mechanic(request):
             already_registered_lock = LockAbsVal.objects.get(lock_inner_id=lock_inner_id)
             is_opened = already_registered_lock.is_opened
             if is_opened:
-                return HttpResponse('#unlock')
+                return HttpResponse('#unlocked')
             else:
                 return HttpResponse('#locked')
         except LockAbsVal.DoesNotExist:
@@ -322,5 +470,4 @@ def arduino_mechanic(request):
             new_registration_lock.save()
             return HttpResponse('new lock registered')
     else:
-        return render(request, 'portal/error.html',
-                      {'title': 'Forbidden', 'message': 'You are not supposed to be here ^_^'})
+        return render(request, 'portal/forbidden.html', {})
