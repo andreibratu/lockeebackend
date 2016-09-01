@@ -448,7 +448,7 @@ def android_share_code(request):
         
 @csrf_exempt
 def android_share_ping(request):
-    """Returns a lock's status to androdi terminal."""
+    """Returns a lock's status to android terminal."""
     if request.method == 'POST':
         form = ShareIDOpen(request.POST)
         if form.is_valid():
@@ -486,7 +486,7 @@ def android_share_mechanic(request):
                 what_lock.save()
                 return HttpResponse('unlocked')
         else:
-            return HttpResponse('bad format')
+            return HttpResponse('bad form')
     else:
         return render(request, 'portal/forbidden.html', {})
 
