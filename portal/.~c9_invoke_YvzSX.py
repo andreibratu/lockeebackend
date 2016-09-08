@@ -98,6 +98,7 @@ def webDisplayLocks(request, message=''):
 def webAddLock(request):
     """This function submits the form for DB processing."""
     form = AddLock(request.POST)
+    
     if request.method == 'POST':
         if form.is_valid():
             error=''
@@ -143,7 +144,8 @@ def webGenerateStaticShareID(request, lockNickname):
     queriedOwner = Owner.objects.get(bindedAbsoluteUser=request.user)
     queriedLock = queriedOwner.bindedRelativeLocks.get(nickname=lockNickname)
     queriedLock.generateStaticShareID()
-    return webDisplayLocks(request)
+    message = "Here's the new static share code for %s" % queriedLock.nickname
+    return webDisplayLocks(request, message)
 
 
 @login_required(login_url='portal:login')
@@ -160,7 +162,7 @@ def webGenerateSessionShareID(request, lockNickname):
             queriedLock = queriedOwner.bindedRelativeLocks.get(nickname=lockNickname)
             timeDeltaDictionary = {'days': int(form_days), 'hours': int(form_hours), 'minutes': int(form_minutes)}
             queriedLock.generateSessionShareID(timeDeltaDictionary)
-            message = "Session Share ID generated with the code: "
+            message = "Here's the new session share code for %s" % queriedLock.nickname
             return webDisplayLocks(request, message)
 
 
@@ -180,7 +182,8 @@ def webMechanic(request, lockInnerID, lockNickname):
     """This view opens/closes a lock via the website."""
     queriedLock = LockAbsVal.objects.get(lockInnerID=lockInnerID)
     result = queriedLock.updateDoorStatus()
-    return webDisplayLocks(request)
+    message = "%s is now %s" % (lockNickname, result)
+    return webDisplayLocks(request, message)
 
 
 @login_required(login_url='portal:login')
@@ -281,7 +284,7 @@ def androidLocksQuery(request):
                 queriedOwner = Owner.objects.get(bindedAbsoluteUser=User.objects.get(username=formUsername))
                 try:
                     listLocks = queriedOwner.bindedRelativeLocks.all()
-                    response = json.dumps({'locksInfo': [{'nickname': lock.nickname, 'lockInnerID': lock.bindedAbsoluteLock.lockInnerID, 'status': lock.bindedAbsoluteLock.statusCheck()} for lock in listLocks]})
+                    response = json.dumps({'locksInfo': [{'nickname': lock.nickname, 'lockInnerID': lock.bindedAbsoluteLock.lockInnerID, 'status': lock.bindedAbsoluteLock.isOpened} for lock in listLocks]})
                     return HttpResponse(response)
                 except Lock.DoesNotExist:
                     return HttpResponse('lock does not exist')
@@ -409,7 +412,7 @@ def androidLockDetails(request):
                 queriedUser = Owner.objects.get(bindedAbsoluteUser=User.objects.get(username=username))
                 queriedAbsLock = LockAbsVal.objects.get(lockInnerID=formlockInnerID)
                 queriedRelativeLock = queriedUser.bindedRelativeLocks.get(bindedAbsoluteLock=queriedAbsLock)
-                response = json.dumps({'lockDetails': [{'nickname': queriedRelativeLock.nickname, 'staticShareID': queriedRelativeLock.staticShareID, 'status': queriedRelativeLock.bindedAbsoluteLock.statusCheck()}]})
+                response = json.dumps({'lockDetails': [{'nickname': queriedRelativeLock.nickname, 'staticShareID': queriedRelativeLock.staticShareID, 'status': queriedRelativeLock.bindedA.statusCheck()}]})
                 return HttpResponse(response)
             except Lock.DoesNotExist:
                 return HttpResponse('bad id')
@@ -489,7 +492,7 @@ def androidShareDetails(request):
                         queriedLock.save()
                         return HttpResponse('expired')
                 except Lock.DoesNotExist:
-                    return HttpResponse('wrong code')
+                    return HttpResponse('wr')
         else:
             return HttpResponse('bad form')
     else:

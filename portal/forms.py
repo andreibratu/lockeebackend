@@ -41,20 +41,39 @@ class AndroidGetLocks(forms.Form):
 
 
 class AndroidOpenLock(forms.Form):
-    lock_inner_id = forms.CharField()
+    lockInnerID = forms.CharField()
 
 
 class AndroidAddLock(forms.Form):
     username = forms.CharField()
-    lock_inner_id = forms.CharField()
+    lockInnerID = forms.CharField()
     nickname = forms.CharField()
     orientation = forms.CharField()
     
 
-class AndroidGenerateCode(forms.Form):
+class AndroidGenerateSessionShareID(forms.Form):
+    username = forms.CharField()
+    nickname = forms.CharField()
+    days = forms.CharField()
+    hours = forms.CharField()
+    minutes = forms.CharField()
+    
+
+class AndroidBasicInfo(forms.Form):
     username = forms.CharField()
     nickname = forms.CharField()
     
     
 class ShareIDOpen(forms.Form):
     shareID = forms.CharField()
+    
+    
+class WebGenerateSessionShareID(forms.Form):
+    days = forms.IntegerField()
+    hours = forms.IntegerField()
+    minutes = forms.IntegerField()
+    
+
+class AndroidDetails(forms.Form):
+    username = forms.CharField()
+    lockInnerID = forms.CharField()
