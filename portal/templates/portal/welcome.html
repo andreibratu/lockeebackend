@@ -1,56 +1,62 @@
-{% extends 'portal/base.html' %}
-{% block title %}Login{% endblock %}
-
-{% block body %}
+{% extends 'portal/base.html' %} {% block title %}Login{% endblock %} {% block body %}
 
 <!-- Display message in case there is one -->
-{% if '{{error}}' %}
-<div class="error">
-    {{error}}
-</div>
-{% endif %} {% load static %}
+<div id="bg_login">
+	{% if '{{error}}' %}
+	<div class="error">
+		{{error}}
+	</div>
+	{% endif %}
+	<div id="login_content">
+		<div class="login_welcome">
+			{% load static %}
+			<h1 class="h1-login">Welcome to Lockee.</h1><br>
+			<p class="login_text">Control your own lock remotelly from our platform and share it with your friends and family. Go ahead, login or create an account.</p>
+			<img class="login_logo" src="{% static 'portal/lockee_logo.png' %}" alt="Logo">
+		</div>
+		<div class="login_input">
+			<!-- Login Form -->
+			<form class="loginform cf" action="{% url 'portal:login' %}" method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+				<ul>
+					<li>
+						<label for="usermail">Email</label>
+						<input type="email" name="usermail" placeholder="youremail@example.com" required>
+					</li>
+					<li>
+						<label for="password">Password</label>
+						<input type="password" name="password" placeholder="Password" required>
+					</li>
+					<li>
+						<input type="submit" class="btn btn-success" value="Login">
+					</li>
+				</ul>
+			</form>
 
-<div id="content">
-    <!-- Login Form -->
-    <form class="loginform cf" action="{% url 'portal:login' %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-		<ul>
-			<li>
-				<label for="usermail">Email</label>
-				<input type="email" name="usermail" placeholder="youremail@example.com"  required>
-			</li>
-			<li>
-				<label for="password">Password</label>
-				<input type="password" name="password" placeholder="Password" required>
-			</li>
-		 	<li>
-				<input type="submit" class="btn btn-success" value="Login">
-			</li>
-		</ul>
-    </form>
-    
-    <!--&nbsp;-->
-    
-    <!-- Register Form -->
-	<form class="registerform cf" action="{% url 'portal:register' %}" method="post" enctype="multipart/form-data" autocomplete="off">
-		{% csrf_token %}
-		<ul>
-            <li>
-                <label for="name">Full name</label>
-                <input type="fullname" name="name" placeholder="Full name" required>
-   	        </li>
-			<li>
-				<label for="usermail">Email</label>
-				<input type="email" name="usermail" placeholder="youremail@example.com" required>
-			</li>
-			<li>
-				<label for="password">Password</label>
-				<input type="password" name="password" placeholder="Password" required>
-			</li>
-			<li>
-				<input type="submit" value="Register">
-			</li>
-		</ul>
-	</form>
+			<!--&nbsp;-->
+
+			<!-- Register Form -->
+			<form class="registerform cf" action="{% url 'portal:register' %}" method="post" enctype="multipart/form-data" autocomplete="off">
+				{% csrf_token %}
+				<ul>
+					<li>
+						<label for="name">Full name</label>
+						<input type="fullname" name="name" placeholder="Full name" required>
+					</li>
+					<li>
+						<label for="usermail">Email</label>
+						<input type="email" name="usermail" placeholder="youremail@example.com" required>
+					</li>
+					<li>
+						<label for="password">Password</label>
+						<input type="password" name="password" placeholder="Password" required>
+					</li>
+					<li>
+						<input type="submit" value="Register">
+					</li>
+				</ul>
+			</form>
+		</div>
+	</div>
 </div>
 {% endblock %}

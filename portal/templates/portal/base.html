@@ -14,8 +14,8 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <nav class="navbar navbar-default navbar-fixed-top">
-            <div class="container-fluid">
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container-fluid" id="navfluid">
                 <!-- NavBar Declaration -->
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#topNavBar">
@@ -26,7 +26,7 @@
                 </div>
 
                 <!-- Nav Bar Items -->
-                <div id="topNavBar">
+                <div class="collapse navbar-collapse" id="navigationbar">
                     <ul class="nav navbar-logo">
                         <li>
                             Lockee
@@ -34,9 +34,8 @@
                     </ul>
                     <!-- Left-sided navbar items -->
                     <ul class="nav navbar-nav">
-                        <!-- Logged-in user's locks -->
                         <li class="">
-                            <a href="{% url 'portal:home' %}">
+                            <a href="{% url 'portal:welcome' %}">
                                 <span class="glyphicon glyphicon-home" aria-hidden="true"></span>&nbsp; Home
                             </a>
                         </li>
@@ -54,13 +53,13 @@
                         <!-- User Logout -->
                         <li class="#">
                             <a href="{% url 'portal:logout' %}">
-                                <span class="glyphicon glyphicon-off" aria-hidden="true"></span>&nbsp; Log Out
+                                <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>&nbsp; Log Out
                             </a>
                         </li>
                         {% else %}
                         <li class="#">
                             <a href="{% url 'portal:welcome' %}">
-                                <span class="glyphicon glyphicon-keys" aria-hidden='true'></span>&nbsp; Log In 
+                                <span class="glyphicon glyphicon-log-in" aria-hidden='true'></span>&nbsp; Log In 
                             </a>
                         </li>
                         {% endif %}

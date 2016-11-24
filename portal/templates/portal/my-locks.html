@@ -23,7 +23,7 @@
                     </th>
                     <!-- Open Close Door -->
                     <th>
-                        {% if iterator.is_opened %}
+                        {% if iterator.isOpened %}
                             <div class="col-sm-offset-2 col-sn-30">
                                 <form action="{% url 'portal:portal-mechanic' iterator.nickname %}" method="get" >
                                     {% csrf_token %}

@@ -1,42 +1,33 @@
+# Background
+_For the powerpoint presentation of the project: *https://drive.google.com/open?id=0B20K5XixvBSyeHkyS3R2NW5PQms*_
 
-     ,-----.,--.                  ,--. ,---.   ,--.,------.  ,------.
-    '  .--./|  | ,---. ,--.,--. ,-|  || o   \  |  ||  .-.  \ |  .---'
-    |  |    |  || .-. ||  ||  |' .-. |`..'  |  |  ||  |  \  :|  `--, 
-    '  '--'\|  |' '-' ''  ''  '\ `-' | .'  /   |  ||  '--'  /|  `---.
-     `-----'`--' `---'  `----'  `---'  `--'    `--'`-------' `------'
-    ----------------------------------------------------------------- 
+This repo contains the code for project Lockee's **backend**, an **IoT project** aiming at creating an universal **smart lock**. The brainchild of a team of five and three months of hard work, Lockee has won the **first prize** in the **FOR IT 2016 Cluj tech competition**, a contest whose purpose was to introduce high school students into the IT world. The project had the following features:
+- **The ability the open/close a door using the door's key**
+- The ability to create an account/login on the Lockee platform & Android app
+- The ability to add the ownership over a lock using an ID code unique to each hypotetical lock (we only made 1 prototype )
+- **The ability the generate "share ID's" which could be used to share a lock with a friend who only had to install the Lockee app**
 
+# About the code
+The code is basically a REST API connected to a MySQL DB that served three type of clients
+- Web clients
+- Android clients
+- The IoT devices ( based on **Arduino** )
 
-Welcome to your Django project on Cloud9 IDE!
-
-Your Django project is already fully setup. Just click the "Run" button to start
-the application. On first run you will be asked to create an admin user. You can
-access your application from 'https://lockee-andrei-b.c9users.io/' and the admin page from 
-'https://lockee-andrei-b.c9users.io/admin'.
-
-## Starting from the Terminal
-
-In case you want to run your Django application from the terminal just run:
-
-1) Run syncdb command to sync models to database and create Django's default superuser and auth system
-
-    $ python manage.py migrate
-
-2) Run Django
-
-    $ python manage.py runserver $IP:$PORT
+**The API handles the following**
+    - User login/register _although_ it does not check for the validity of the registration mail
+    - DB updates of a Lockee's status
+    - Answering queries made by web/android clients
+    - **Generation and validity check for the share IDs ( the share IDs can be time restricted)**
+    - **Enhancing the Android app with real time checks ( e.g. valid/invalid email field, password too weak message )**
+    - Serving HTML/CSS dynamic web pages to the web clients
     
-## Configuration
+# Behind the scenes
+The code was written using the Django Framework and MySQL for DB
 
-You can configure your Python version and `PYTHONPATH` used in
-Cloud9 > Preferences > Project Settings > Language Support.
-
-## Support & Documentation
-
-Django docs can be found at https://www.djangoproject.com/
-
-You may also want to follow the Django tutorial to create your first application:
-https://docs.djangoproject.com/en/1.9/intro/tutorial01/
-
-Visit http://docs.c9.io for support, or to learn more about using Cloud9 IDE.
-To watch some training videos, visit http://www.youtube.com/user/c9ide
+# Kudos
+##### Team Glimpse 
+- Sturza Bogdan, Team's mentor and the coolest guy I know https://github.com/sturza
+- Popa Adrian, Android application and the software side for the Arduino https://github.com/AdiPoPa
+- Cristurean Roxana, Frontend
+- Miron Dănuț, Arduino Hardware
+- Dan Tudor, Project demo and editing
